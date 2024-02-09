@@ -1,11 +1,16 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(Engine CXX)
+project(Engine LANGUAGES CXX)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-add_executable(Engine main.cc)
+include(strawx/strawx.cmake)
 
-add_subdirectory(strawx)
+add_executable(Engine ${strawx_src} main.cc)
 
-target_link_libraries(Engine PUBLIC strawx)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE
+	${SDL2_LIBRARIES} 
+	SDL2_image::SDL2_image
+)

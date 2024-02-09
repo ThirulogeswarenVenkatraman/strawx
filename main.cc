@@ -7,12 +7,12 @@ void Game::Start()
 
 }
 
-void Game::Update(float dt)
+void Game::Update()
 {
 
 }
 
 void Game::Render()
 {
-    
+
 }
