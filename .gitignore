@@ -1,9 +1,11 @@
+.gitignore
 
 # build directory
 build
 out
 
 # output directory
+bin
 Debug
 Release
 
@@ -14,8 +16,4 @@ Release
 *.sh
 *.bash
 
-# application files
-*.cc
-*.cpp
-*.hh
-*.hpp
+vcpkg_installed
