@@ -1,8 +1,8 @@
 #ifndef STRAWX_ENGINE_GAME_H
 #define STRAWX_ENGINE_GAME_H
 
-#include "input.h"
-#include "texture.h"
+#include "core/input.h"
+#include "core/texture.h"
 
 namespace strawx
 {
@@ -10,7 +10,7 @@ namespace strawx
 	{
 		void Start();
 
-		void Update(float dt);
+		void Update();
 
 		void Render();
 	}

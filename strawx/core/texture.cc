@@ -1,17 +1,18 @@
 #include "texture.h"
 
 #include "SDL2/SDL_image.h"
-#include "core/common.hh"
-
-#include <unordered_map>
 
 using namespace strawx;
 
-struct TextureDetails {
+struct TextureProperties {
 
-    TextureDetails() : ptr_to_texture{ nullptr } { }
+    TextureProperties() : ptr_to_texture{ nullptr } 
+    {
+        source_rect = { 0, 0, 0, 0 };
+        destin_rect = { 0.0f, 0.0f, 0.0f, 0.0f };
+    }
 
-    ~TextureDetails() {
+    ~TextureProperties() {
         SDL_DestroyTexture(ptr_to_texture);
         SDL_Log("Destroyed Texture [%s]", SDL_GetError());
     }
@@ -21,10 +22,10 @@ struct TextureDetails {
     SDL_FRect destin_rect;
 };
 
-namespace {
-    SDL_Renderer* mRenderer{ nullptr };
-    std::unordered_map<std::string, TextureDetails> mTextures;
-}
+#include "common.h"
+#include <unordered_map>
+
+static std::unordered_map<std::string, TextureProperties> mTextures;
 
 void TextureHandler::LoadTexture(std::string filename, SDL_Rect source, std::string name)
 {
@@ -66,17 +67,7 @@ void TextureHandler::SetTextureSize(const std::string name, const float size)
     mTextures.at(name).destin_rect.h *= size;
 }
 
-
-using namespace texture_impl;
-
-void set_renderer(void* renderer)
+void TextureHandler::ClearTextures()
 {
-    mRenderer = static_cast<SDL_Renderer*>(renderer);
-}
-
-void clear_textures()
-{
-    SDL_Log("Clearing Textures...");
-    mRenderer = nullptr;
     mTextures.clear();
 }

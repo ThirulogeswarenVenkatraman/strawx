@@ -1,57 +1,42 @@
 #include "engine.h"
-#include "core/common.hh"
 
 #define SDL_MAIN_HANDLED
 #include "SDL2/SDL.h"
 
-namespace {
 
-	struct Engine {
-		Engine(const int width, const int height);
-		~Engine();
+struct Engine {
+	Engine(const int width, const int height);
+	~Engine();
 
-		SDL_Window* window;
-		SDL_Renderer* renderer;
-		SDL_Event event;
+	SDL_Window* window;
+	SDL_Renderer* renderer;
 
-		uint8_t engine_state;
-		uint16_t refresh_rate;
-	};
+	uint8_t engine_state;
+	uint16_t refresh_rate;
+};
 
-}
-
-namespace strawx 
-{
-	KeyboardStates& get_kstate(Input& inst)	
-	{ 
-		return inst.kstate; 
-	}
-}
+#include "core/common.h"
 
 int main(int argc, char** argv)
 {
 	using namespace strawx;
  
-	Engine core{ 1280, 720 };
+	Engine core{ 1280/2, 720/2 };
 
-	texture_impl::set_renderer(core.renderer);
+	mRenderer = core.renderer;
 
 	Game::Start();
 
-	auto& [repeat, state, down, up] = get_kstate(Input::GetInstance());
-
 	constexpr float fixed_dt{ 1000.0f / 90.0f };
 
-	float FPS{ }, elapsed{ };
+	float elapsed{ };
 	float current{ }, accumulator{ };
 
 	float previous = static_cast<float>(SDL_GetTicks64());
 
 	while (core.engine_state) {
 		
-		down.fill(0); up.fill(0);
-
-		FPS += 1.0f;
+		KeyboardStates.clear_states();
 
 		current = static_cast<float>(SDL_GetTicks64());
 		elapsed = current - previous;
@@ -59,39 +44,34 @@ int main(int argc, char** argv)
 
 		accumulator += elapsed;
 
-		// calculates Frames Per Second
-		if (static float seconds{ 1.0f }; (SDL_GetTicks64() / 1000.0f) > seconds) {
-			SDL_Log("FPS: %f", FPS); FPS = 0.0f;
-			seconds += 1.0f;
-		}
-
-		while (SDL_PollEvent(&core.event))
+		SDL_Event event;
+		while (SDL_PollEvent(&event))
 		{
-			switch (core.event.type)
+			switch (auto& [repeat, state, down, up] = KeyboardStates; event.type)
 			{
 			case SDL_QUIT:
 				core.engine_state = false;
 				break;
 			
 			case SDL_KEYDOWN:
-				state[core.event.key.keysym.scancode] = 1;
-				down[core.event.key.keysym.scancode] = 1;
+				state[event.key.keysym.scancode] = 1;
+				down[event.key.keysym.scancode] = 1;
 				break;
 
 			case SDL_KEYUP:
-				state[core.event.key.keysym.scancode] = 0;
+				state[event.key.keysym.scancode] = 0;
 
-				repeat[core.event.key.keysym.scancode] = 0;
-				up[core.event.key.keysym.scancode] = 1;
+				repeat[event.key.keysym.scancode] = 0;
+				up[event.key.keysym.scancode] = 1;
 				break;
 			}
 		}
 
-		if (Input::GetInstance().IsKeyPressed(SDL_SCANCODE_ESCAPE))
+		if (InputHandler::IsKeyPressed(SDL_SCANCODE_ESCAPE))
 			core.engine_state = false;
 
 		while (accumulator >= fixed_dt) {
-			Game::Update(fixed_dt);
+			Game::Update();
 			accumulator -= fixed_dt;
 		}
 
@@ -107,7 +87,7 @@ int main(int argc, char** argv)
 }
 
 Engine::Engine(const int width, const int height) :
-	window{ nullptr }, renderer{ nullptr }, event{ },
+	window{ nullptr }, renderer{ nullptr },
 	engine_state{ false }, refresh_rate{ 0 }
 {
 	SDL_Log("Constructing Engine");
@@ -150,7 +130,7 @@ Engine::Engine(const int width, const int height) :
 
 Engine::~Engine()
 {
-	texture_impl::clear_textures();
+	strawx::TextureHandler::ClearTextures();
 
 	if (renderer) SDL_DestroyRenderer(renderer);
 	SDL_Log("destroying renderer [%s]", SDL_GetError());

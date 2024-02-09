@@ -1,5 +1,4 @@
-#ifndef STRAWX_TEXTURE_HANDLERS_H
-#define STRAWX_TEXTURE_HANDLERS_H
+#pragma once
 
 #include "SDL2/SDL_rect.h"
 #include <string>
@@ -11,6 +10,6 @@ namespace strawx::TextureHandler {
     void DrawTexture(const std::string name, const float x, const float y);
 
     void SetTextureSize(const std::string name, const float size);
-}
 
-#endif
+    void ClearTextures();
+}
