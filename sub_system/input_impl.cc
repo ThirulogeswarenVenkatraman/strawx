@@ -1,6 +1,7 @@
 #include "input.h"
 
-#include "common.h"
+#define INCLUDING_COMMON_SPEC__CH
+#include "shared/spec__c.h"
 
 using namespace strawx;
 

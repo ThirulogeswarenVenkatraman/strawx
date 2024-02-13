@@ -1,10 +1,7 @@
-#include "texture.h"
-
+/* texture.h implementation */
 #include "SDL2/SDL_image.h"
 
-using namespace strawx;
-
-struct TextureProperties {
+struct TextureProperties : SDL_Rect {
 
     TextureProperties() : ptr_to_texture{ nullptr } 
     {
@@ -22,18 +19,23 @@ struct TextureProperties {
     SDL_FRect destin_rect;
 };
 
-#include "common.h"
+#include "texture.h"
+
+#define INCLUDING_COMMON_SPEC__CH
+#include "shared/spec__c.h"
+
 #include <unordered_map>
 
 static std::unordered_map<std::string, TextureProperties> mTextures;
 
-void TextureHandler::LoadTexture(std::string filename, SDL_Rect source, std::string name)
-{
-    using engine_specific::renderer;
+using namespace strawx;
+using namespace engine_spec;
 
+void TextureHandler::LoadTexture(std::string_view filename, SDL_Rect source, std::string name)
+{
     static SDL_Texture* temp_texture = nullptr;
     
-    temp_texture = IMG_LoadTexture(renderer, filename.c_str());
+    temp_texture = IMG_LoadTexture(renderer, filename.data());
 
     if (!temp_texture) {
         SDL_Log("%s", IMG_GetError());
@@ -52,8 +54,6 @@ void TextureHandler::LoadTexture(std::string filename, SDL_Rect source, std::str
 
 void TextureHandler::DrawTexture(std::string_view name, const float x, const float y)
 {
-    using engine_specific::renderer;
-
     mTextures[name.data()].destin_rect.x = x;
     mTextures[name.data()].destin_rect.y = y;
 
@@ -71,7 +71,7 @@ void TextureHandler::SetTextureSize(std::string_view name, const float size)
     mTextures.at(name.data()).destin_rect.h *= size;
 }
 
-void engine_specific::clear_textures()
+void engine_spec::clear_textures()
 {
     mTextures.clear();
 }

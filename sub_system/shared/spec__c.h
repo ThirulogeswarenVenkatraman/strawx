@@ -1,7 +1,8 @@
-#ifndef STRAWX_COMMON_HEADER__HH
-#define STRAWX_COMMON_HEADER__HH
+#pragma once
 
 #include "SDL2/SDL_render.h"
+
+#ifdef INCLUDING_COMMON_SPEC__CH
 
 constexpr uint16_t NUM_KEYS = { 512 };
 
@@ -21,7 +22,7 @@ inline struct
 } KeyboardStates;
 
 
-namespace engine_specific
+namespace engine_spec
 {
 	void clear_textures(void);
 

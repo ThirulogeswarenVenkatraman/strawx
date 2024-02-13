@@ -15,15 +15,16 @@ struct Engine {
 	uint16_t refresh_rate;
 };
 
-#include "core/common.h"
+#define INCLUDING_COMMON_SPEC__CH
+#include "sub_system/shared/spec__c.h"
 
 int main(int argc, char** argv)
 {
 	using namespace strawx;
  
-	Engine core{ 1280/2, 720/2 };
+	Engine core{ 1000, 600 };
 
-	engine_specific::renderer = core.renderer;
+	engine_spec::renderer = core.renderer;
 
 	Game::Start();
 
@@ -130,7 +131,7 @@ Engine::Engine(const int width, const int height) :
 
 Engine::~Engine()
 {
-	engine_specific::clear_textures();
+	engine_spec::clear_textures();
 
 	if (renderer) SDL_DestroyRenderer(renderer);
 	SDL_Log("destroying renderer [%s]", SDL_GetError());
