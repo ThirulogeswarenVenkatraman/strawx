@@ -1,5 +1,5 @@
-#ifndef STRAWX_ENGINE_INPUT_H
-#define STRAWX_ENGINE_INPUT_H
+#ifndef STRAWX_INPUT_HANDLER__H
+#define STRAWX_INPUT_HANDLER__H
 
 #include "SDL2/SDL_scancode.h"
 

@@ -14,7 +14,7 @@ struct TextureProperties {
 
     ~TextureProperties() {
         SDL_DestroyTexture(ptr_to_texture);
-        SDL_Log("Destroyed Texture [%s]", SDL_GetError());
+        SDL_Log("Destroying Texture [%s]", SDL_GetError());
     }
 
     SDL_Texture* ptr_to_texture;
@@ -29,9 +29,11 @@ static std::unordered_map<std::string, TextureProperties> mTextures;
 
 void TextureHandler::LoadTexture(std::string filename, SDL_Rect source, std::string name)
 {
+    using engine_specific::renderer;
+
     static SDL_Texture* temp_texture = nullptr;
     
-    temp_texture = IMG_LoadTexture(mRenderer, filename.c_str());
+    temp_texture = IMG_LoadTexture(renderer, filename.c_str());
 
     if (!temp_texture) {
         SDL_Log("%s", IMG_GetError());
@@ -48,26 +50,28 @@ void TextureHandler::LoadTexture(std::string filename, SDL_Rect source, std::str
     SDL_Log("Loaded %s", name.c_str());
 }
 
-void TextureHandler::DrawTexture(const std::string name, const float x, const float y)
+void TextureHandler::DrawTexture(std::string_view name, const float x, const float y)
 {
-    mTextures[name].destin_rect.x = x;
-    mTextures[name].destin_rect.y = y;
+    using engine_specific::renderer;
+
+    mTextures[name.data()].destin_rect.x = x;
+    mTextures[name.data()].destin_rect.y = y;
 
     SDL_RenderCopyF(
-        mRenderer,
-        mTextures[name].ptr_to_texture,
-        &mTextures[name].source_rect,
-        &mTextures[name].destin_rect
+        renderer,
+        mTextures[name.data()].ptr_to_texture,
+        &mTextures[name.data()].source_rect,
+        &mTextures[name.data()].destin_rect
     );
 }
 
-void TextureHandler::SetTextureSize(const std::string name, const float size)
+void TextureHandler::SetTextureSize(std::string_view name, const float size)
 {
-    mTextures.at(name).destin_rect.w *= size;
-    mTextures.at(name).destin_rect.h *= size;
+    mTextures.at(name.data()).destin_rect.w *= size;
+    mTextures.at(name.data()).destin_rect.h *= size;
 }
 
-void TextureHandler::ClearTextures()
+void engine_specific::clear_textures()
 {
     mTextures.clear();
 }

@@ -23,7 +23,7 @@ int main(int argc, char** argv)
  
 	Engine core{ 1280/2, 720/2 };
 
-	mRenderer = core.renderer;
+	engine_specific::renderer = core.renderer;
 
 	Game::Start();
 
@@ -130,7 +130,7 @@ Engine::Engine(const int width, const int height) :
 
 Engine::~Engine()
 {
-	strawx::TextureHandler::ClearTextures();
+	engine_specific::clear_textures();
 
 	if (renderer) SDL_DestroyRenderer(renderer);
 	SDL_Log("destroying renderer [%s]", SDL_GetError());
