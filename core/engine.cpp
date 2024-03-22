@@ -1,32 +1,16 @@
-#include "engine.h"
+#include "engine.hpp"
+#include "engine.spec.h"
 
 #define SDL_MAIN_HANDLED
 #include "SDL2/SDL.h"
 
-
-struct Engine {
-	Engine(const int width, const int height);
-	~Engine();
-
-	SDL_Window* window;
-	SDL_Renderer* renderer;
-
-	uint8_t engine_state;
-	uint16_t refresh_rate;
-};
-
-#define INCLUDING_COMMON_SPEC__CH
-#include "sub_system/shared/spec__c.h"
+using namespace strawx;
 
 int main(int argc, char** argv)
 {
-	using namespace strawx;
- 
-	Engine core{ 1000, 600 };
+	using Engine::renderer;
 
-	engine_spec::renderer = core.renderer;
-
-	Game::Start();
+	Engine::Initialize(900, 600);
 
 	constexpr float fixed_dt{ 1000.0f / 90.0f };
 
@@ -35,63 +19,59 @@ int main(int argc, char** argv)
 
 	float previous = static_cast<float>(SDL_GetTicks64());
 
-	while (core.engine_state) {
-		
-		KeyboardStates.clear_states();
+	SDL_Event sdl_event{};
+
+	while (Engine::state) {
 
 		current = static_cast<float>(SDL_GetTicks64());
 		elapsed = current - previous;
 		previous = current;
 
 		accumulator += elapsed;
-
-		SDL_Event event;
-		while (SDL_PollEvent(&event))
+				
+		while (SDL_PollEvent(&sdl_event))
 		{
-			switch (auto& [repeat, state, down, up] = KeyboardStates; event.type)
+			switch (sdl_event.type)
 			{
 			case SDL_QUIT:
-				core.engine_state = false;
+				Engine::state = false;
 				break;
-			
+
 			case SDL_KEYDOWN:
-				state[event.key.keysym.scancode] = 1;
-				down[event.key.keysym.scancode] = 1;
+				fill_keystates(InputHandler::GetInstance(), SDL_GetKeyboardState(nullptr));
 				break;
 
 			case SDL_KEYUP:
-				state[event.key.keysym.scancode] = 0;
-
-				repeat[event.key.keysym.scancode] = 0;
-				up[event.key.keysym.scancode] = 1;
+				fill_keystates(InputHandler::GetInstance(), SDL_GetKeyboardState(nullptr));
+				fill_keyrepeat(InputHandler::GetInstance(), sdl_event.key.keysym.scancode);
 				break;
 			}
 		}
 
-		if (InputHandler::IsKeyPressed(SDL_SCANCODE_ESCAPE))
-			core.engine_state = false;
+		if (InputHandler::GetInstance().IsKeyPressed(SDL_SCANCODE_ESCAPE)) {
+			Engine::state = false;
+		}
 
 		while (accumulator >= fixed_dt) {
 			Game::Update();
 			accumulator -= fixed_dt;
 		}
 
-		SDL_SetRenderDrawColor(core.renderer, 0, 0, 0, 255);
-		SDL_RenderClear(core.renderer);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		SDL_RenderClear(renderer);
 
 		Game::Render();
 		
-		SDL_RenderPresent(core.renderer);
+		SDL_RenderPresent(renderer);
 	}
+
+	Engine::ShutDown();
 
 	return EXIT_SUCCESS;
 }
 
-Engine::Engine(const int width, const int height) :
-	window{ nullptr }, renderer{ nullptr },
-	engine_state{ false }, refresh_rate{ 0 }
+void Engine::Initialize(const int width, const int height)
 {
-	SDL_Log("Constructing Engine");
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0)
 	{
@@ -125,13 +105,16 @@ Engine::Engine(const int width, const int height) :
 	SDL_Log("Refresh Rate: %d", refresh_rate);
 
 	// if everything went OK
-	engine_state = true;
+	state = true;
 
+	// start Engine subsystem
+	TextureManager::Init();
+	Game::Start();
 }
 
-Engine::~Engine()
-{
-	engine_spec::clear_textures();
+void Engine::ShutDown() {
+
+	TextureManager::DeInit();
 
 	if (renderer) SDL_DestroyRenderer(renderer);
 	SDL_Log("destroying renderer [%s]", SDL_GetError());
@@ -145,4 +128,14 @@ Engine::~Engine()
 	SDL_Quit();
 
 	SDL_Log("Destructing Engine");
+}
+
+void strawx::fill_keystates(InputHandler& instance, const uint8_t* array)
+{
+	instance.keystate = array;
+}
+
+void strawx::fill_keyrepeat(InputHandler& instance, SDL_Scancode scancode)
+{
+	instance.repeat[scancode] = 0;
 }

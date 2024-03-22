@@ -1,8 +1,9 @@
-#ifndef STRAWX_ENGINE_TEXTURE_HANDLER__HH
-#define STRAWX_ENGINE_TEXTURE_HANDLER__HH
+#pragma once
 
 #include "SDL2/SDL_rect.h"
+
 #include <string_view>
+#include <unordered_map>
 
 namespace strawx::TextureHandler {
 
@@ -11,6 +12,5 @@ namespace strawx::TextureHandler {
     void DrawTexture(std::string_view name, const float x, const float y);
 
     void SetTextureSize(std::string_view name, const float size);
-}
 
-#endif
+}
