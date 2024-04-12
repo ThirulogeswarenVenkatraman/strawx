@@ -2,7 +2,7 @@
 
 #include "SDL2/SDL.h"
 
-void Engine::StartUp(EngineDef& engine, const int width, const int height)
+void EngineDef::StartUp(const int width, const int height)
 {
 
     if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) < 0)
@@ -11,66 +11,61 @@ void Engine::StartUp(EngineDef& engine, const int width, const int height)
         return;
     }
 
-    engine.window = SDL_CreateWindow(
+    this->window = SDL_CreateWindow(
         "strawx",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        width, height, 0
+        width, height, SDL_WINDOW_RESIZABLE
     );
 
-    if (!engine.window) {
+    if (!this->window) {
         SDL_Log("%s", SDL_GetError());
         return;
     }
 
-    engine.renderer = SDL_CreateRenderer(engine.window, -1, SDL_RENDERER_PRESENTVSYNC);
+    this->renderer = SDL_CreateRenderer(this->window, -1, SDL_RENDERER_PRESENTVSYNC);
 
-    if (!engine.renderer)
+    if (!this->renderer)
     {
         SDL_Log("%s", SDL_GetError());
         return;
     }
 
     // if everything went ok
-    engine.state = 1u;
+    this->state = 1u;
 
     SDL_DisplayMode display_mode;
-    SDL_GetDisplayMode(SDL_GetWindowDisplayIndex(engine.window), 0, &display_mode);
+    SDL_GetDisplayMode(SDL_GetWindowDisplayIndex(this->window), 0, &display_mode);
 
-    engine.refresh_rate = display_mode.refresh_rate;
+    this->refresh_rate = display_mode.refresh_rate;
 
-    SDL_Log("refresh rate: %u", engine.refresh_rate);
+    SDL_Log("refresh rate: %u", this->refresh_rate);
 
-    engine.InitSystems();
+    // sub-systems
+    InputSystem.StartUp();
+    TextureSystem.StartUp(this->renderer);
+
+    static Handler engine_handler{ this };
+    Handler::e_handler = &engine_handler;
 }
 
-void Engine::ShutDown(EngineDef& engine)
+void EngineDef::ShutDown()
 {
-    engine.DeInitSystems();
+    TextureSystem.ShutDown();
+    InputSystem.ShutDown();
 
-    if (engine.renderer)
+    if (this->renderer)
     {
-        SDL_DestroyRenderer(engine.renderer);
+        SDL_DestroyRenderer(this->renderer);
     }
 
-    if (engine.window)
+    if (this->window)
     {
-        SDL_DestroyWindow(engine.window);
+        SDL_DestroyWindow(this->window);
     }
 
-    engine.renderer = nullptr;
-    engine.window = nullptr;
+    this->renderer = nullptr;
+    this->window = nullptr;
 
     SDL_Log("System ShutDown");
-}
-
-void EngineDef::InitSystems()
-{
-    this->Input.StartUp();
-    
-}
-
-void EngineDef::DeInitSystems()
-{
-    this->Input.ShutDown();
 }

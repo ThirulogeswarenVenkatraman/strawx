@@ -1,21 +1,36 @@
 #include "engine.hpp"
 
 #include "core/engine_spec.h"
+#include "core/handler.h"
 
 #include "SDL2/SDL_events.h"
+#include "SDL2/SDL_timer.h"
 
 int main(int argc, char** argv)
 {
     EngineDef strawx; SDL_Event evnt{};
-
-    Engine::StartUp(strawx, 1600, 900);
+    
+    strawx.StartUp(1100, 600);
 
     using namespace strawx;
 
     Game::Start();
 
+    constexpr float fixed_dt{ 1000.0f / 90.0f };
+
+    float elapsed{ };
+    float current{ }, accumulator{ };
+
+    float previous = static_cast<float>(SDL_GetTicks64());
+
     while (strawx.state)
     {
+        current = static_cast<float>(SDL_GetTicks64());
+        elapsed = current - previous;
+        previous = current;
+
+        accumulator += elapsed;
+
         while (SDL_PollEvent(&evnt))
         {
             switch (evnt.type)
@@ -30,12 +45,21 @@ int main(int argc, char** argv)
 
             case SDL_KEYUP:
                 strawx.FillKeyStates(SDL_GetKeyboardState(nullptr));
+                strawx.ResetKeyStates(evnt.key.keysym.scancode);
                 break;
             }
         }
 
-        Game::Update();
+        if (Handlers->Input.isKeyPressed(SDL_SCANCODE_ESCAPE)) {
+            strawx.state = false;
+        }
 
+        while (accumulator >= fixed_dt) {
+            Game::Update();
+            accumulator -= fixed_dt;
+        }
+
+        SDL_SetRenderDrawColor(strawx.renderer, 0, 0, 0, 255);
         SDL_RenderClear(strawx.renderer);
 
         Game::Render();
@@ -44,7 +68,7 @@ int main(int argc, char** argv)
 
     }
 
-    Engine::ShutDown(strawx);
+    strawx.ShutDown();
 
     return EXIT_SUCCESS;
 }

@@ -4,8 +4,7 @@
 #include "SDL2/SDL_video.h"
 #include "SDL2/SDL_render.h"
 
-// sub-systems
-#include "input_handler.h"
+#include "handler.h"
 
 struct EngineDef final {
 
@@ -15,22 +14,23 @@ struct EngineDef final {
     uint16_t    state;
     uint16_t    refresh_rate;
 
-    InputHandler    Input;
+    InputHandler    InputSystem;
+    TextureManager  TextureSystem;
 
-    void InitSystems();
-    void DeInitSystems();
-
+    void StartUp(const int width, const int height);
+    void ShutDown();
+    
     void FillKeyStates(const Uint8* key_states)
     {
-        this->Input.key_states = key_states;
+        this->InputSystem.key_states = key_states;
     }
-};
 
-namespace Engine
-{
-    void StartUp(EngineDef& engine, const int width, const int height);
-    void ShutDown(EngineDef& engine);
-}
+    void ResetKeyStates(SDL_Scancode key)
+    {
+        this->InputSystem.repeat[key] = 0;
+    }
+
+};
 
 #endif
 
